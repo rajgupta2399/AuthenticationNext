@@ -71,46 +71,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRole } from "@/src/context/RoleProviderContext";
-import { useRouter } from "next/navigation"; // ✅ Import is correct
 
 const Page = () => {
   const { role } = useRole();
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter(); // ✅ Add this line - you forgot to declare router
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const cookies = document.cookie.split(";");
-      const hasToken = cookies.some((cookie) =>
-        cookie.trim().startsWith("token1=")
-      );
-
-      setIsAuthenticated(hasToken); // ✅ Update state
-
-      if (!hasToken) {
-        // Redirect to /signup if not authenticated
-        router.push("/signup");
-      } else {
-        setIsLoading(false); // ✅ Stop loading if authenticated
-      }
-    };
-
-    checkAuth();
-  }, [router]); // ✅ router is now in dependency array
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  // ✅ Only show content if authenticated (loading is already false here)
-  if (!isAuthenticated) {
-    return null; // or redirecting message
-  }
 
   // If authenticated, show your original dashboard content
   return (
