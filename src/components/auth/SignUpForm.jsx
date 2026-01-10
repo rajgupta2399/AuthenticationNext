@@ -85,6 +85,17 @@ export default function OTPSignInForm() {
 
       console.log("Before sending OTP - Cookies:", document.cookie);
 
+      // CLEAR all cookies before testing
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
+      });
+
+      console.log("=== STARTING OTP REQUEST ===");
+      console.log("1. All cookies cleared");
+      console.log("2. Making fetch request to /sendOTP");
+
       // Send OTP API call
       setIsSendingOTP(true);
       const response = await fetch(`${BASE_URL}/sendOTP`, {
@@ -214,6 +225,7 @@ export default function OTPSignInForm() {
   };
 
   // Handle OTP verification - FIXED FOR token1
+  // Handle OTP verification - Backend sets the token
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -261,43 +273,14 @@ export default function OTPSignInForm() {
           console.log("All cookies:", document.cookie);
 
           if (token1) {
-            // Success! Token1 is set, now redirect
-            if (data.data?.Role === "superadmin") {
-              window.location.href = "/superadmin";
-            } else {
-              window.location.href = "/";
-            }
+            // Success! Backend set the token, now redirect
+            // IMPORTANT: Use window.location.href for full page navigation
+            // This ensures middleware runs and redirects to correct role page
+            window.location.href = "/";
           } else {
-            // Backend didn't set cookie properly, create a copy
-            console.warn(
-              "Backend didn't set token1 properly, creating client-side token"
-            );
-
-            // Create a mock JWT token
-            const mockPayload = {
-              Email: email,
-              Role: data.data?.Role || "user",
-              iat: Math.floor(Date.now() / 1000),
-              exp: Math.floor(Date.now() / 1000) + 3600,
-            };
-
-            // In a real app, you should use proper JWT encoding
-            // For now, we'll use a simple base64 encoding
-            const mockToken = btoa(JSON.stringify(mockPayload));
-
-            // Set it as token1 to match what middleware expects
-            setCookie("token1", mockToken);
-
-            // Also store user data
-            localStorage.setItem("userEmail", email);
-            localStorage.setItem("userRole", data.data?.Role || "user");
-
-            // Redirect
-            if (data.data?.Role === "superadmin") {
-              window.location.href = "/superadmin";
-            } else {
-              window.location.href = "/";
-            }
+            // Backend didn't set cookie properly
+            console.error("Backend didn't set token1 cookie");
+            toast.error("Login failed - No authentication token received");
           }
         }, 100); // Small delay to ensure cookies are processed
       } else {

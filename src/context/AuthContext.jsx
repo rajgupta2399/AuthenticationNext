@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
 
       // FIX: Look for token1, not token
-      const token = getCookie("token1"); // Changed from getCookie('token')
+      const token = getCookie("token"); // Changed from getCookie('token')
 
       console.log(
         "[AuthContext] Checking auth, token1:",
@@ -152,89 +152,89 @@ export const AuthProvider = ({ children }) => {
 
   // Login function
   // In your AuthContext.js
-  const login = async (email, otp) => {
-    try {
-      const response = await fetch(`${BASE_URL}/login2`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, otp }),
-        credentials: "include",
-      });
+  // const login = async (email, otp) => {
+  //   try {
+  //     const response = await fetch(`${BASE_URL}/login2`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ email, otp }),
+  //       credentials: "include",
+  //     });
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      if (response.ok) {
-        toast.success("Login successful!");
+  //     if (response.ok) {
+  //       toast.success("Login successful!");
 
-        // Check if token was actually set by backend
-        const token = getCookie("token");
-        console.log("Token after login:", token ? "Present" : "Missing");
+  //       // Check if token was actually set by backend
+  //       const token = getCookie("token");
+  //       console.log("Token after login:", token ? "Present" : "Missing");
 
-        if (token) {
-          // Decode token to get user info
-          const decoded = decodeToken(token);
+  //       if (token) {
+  //         // Decode token to get user info
+  //         const decoded = decodeToken(token);
 
-          if (decoded) {
-            const userData = {
-              email: decoded.Email || email,
-              role: decoded.Role || "user",
-              ...decoded,
-            };
+  //         if (decoded) {
+  //           const userData = {
+  //             email: decoded.Email || email,
+  //             role: decoded.Role || "user",
+  //             ...decoded,
+  //           };
 
-            setUser(userData);
+  //           setUser(userData);
 
-            // Use setTimeout to allow cookies to propagate
-            setTimeout(() => {
-              if (decoded.Role === "superadmin") {
-                router.push("/superadmin");
-              } else {
-                router.push("/dashboard");
-              }
-            }, 100);
+  //           // Use setTimeout to allow cookies to propagate
+  //           setTimeout(() => {
+  //             if (decoded.Role === "superadmin") {
+  //               router.push("/superadmin");
+  //             } else {
+  //               router.push("/dashboard");
+  //             }
+  //           }, 100);
 
-            return { success: true, data: userData };
-          }
-        } else {
-          // If no token, maybe backend returned it in response body
-          if (data.token) {
-            // Set cookie manually if backend returns token in response
-            setCookie("token", data.token);
+  //           return { success: true, data: userData };
+  //         }
+  //       } else {
+  //         // If no token, maybe backend returned it in response body
+  //         if (data.token) {
+  //           // Set cookie manually if backend returns token in response
+  //           setCookie("token", data.token);
 
-            const decoded = decodeToken(data.token);
-            const userData = {
-              email: decoded.Email || email,
-              role: decoded.Role || "user",
-              ...decoded,
-            };
+  //           const decoded = decodeToken(data.token);
+  //           const userData = {
+  //             email: decoded.Email || email,
+  //             role: decoded.Role || "user",
+  //             ...decoded,
+  //           };
 
-            setUser(userData);
+  //           setUser(userData);
 
-            setTimeout(() => {
-              if (decoded.Role === "superadmin") {
-                router.push("/superadmin");
-              } else {
-                router.push("/dashboard");
-              }
-            }, 100);
+  //           setTimeout(() => {
+  //             if (decoded.Role === "superadmin") {
+  //               router.push("/superadmin");
+  //             } else {
+  //               router.push("/dashboard");
+  //             }
+  //           }, 100);
 
-            return { success: true, data: userData };
-          }
-        }
+  //           return { success: true, data: userData };
+  //         }
+  //       }
 
-        toast.error("Authentication token not received");
-        return { success: false, error: "Authentication token not received" };
-      } else {
-        toast.error(data.message || "Login failed");
-        return { success: false, error: data.message };
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Network error. Please try again.");
-      return { success: false, error: "Network error" };
-    }
-  };
+  //       toast.error("Authentication token not received");
+  //       return { success: false, error: "Authentication token not received" };
+  //     } else {
+  //       toast.error(data.message || "Login failed");
+  //       return { success: false, error: data.message };
+  //     }
+  //   } catch (error) {
+  //     console.error("Login error:", error);
+  //     toast.error("Network error. Please try again.");
+  //     return { success: false, error: "Network error" };
+  //   }
+  // };
 
   // Logout function
   const logout = async () => {
@@ -315,7 +315,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         loading,
-        login,
+        // login,
         logout,
         isAuthenticated,
         hasRole,

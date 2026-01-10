@@ -553,7 +553,7 @@ const sidebarConfig = {
       },
       {
         name: "Give Feedback",
-        path: "/donor-alumni/give-feedback",
+        path: "/give-feedback",
         icon: <MdFeedback className="w-5 h-5" />,
       },
 

@@ -18,13 +18,13 @@ export default function RootLayout({ children }) {
       <ViewTransitions>
         <body className={`${raleway.className} dark:bg-gray-900`}>
           <ThemeProvider>
-            <AuthProvider>
-              <SidebarProvider>
-                <ThemeAwareLoader />
-                <Toaster />
-                {children}
-              </SidebarProvider>
-            </AuthProvider>
+            {/* <AuthProvider> */}
+            <SidebarProvider>
+              <ThemeAwareLoader />
+              <Toaster />
+              {children}
+            </SidebarProvider>
+            {/* </AuthProvider> */}
           </ThemeProvider>
         </body>
       </ViewTransitions>
