@@ -53,28 +53,14 @@ export default function OTPSignInForm() {
   }, [countdown]);
 
   // Helper function to get cookie
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-    return null;
-  };
-
-  // Helper function to set cookie
-  const setCookie = (name, value, days = 1) => {
-    const expires = new Date(
-      Date.now() + days * 24 * 60 * 60 * 1000
-    ).toUTCString();
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-    const secureFlag = !isLocalhost ? "; Secure" : "";
-    document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax${secureFlag}`;
-  };
+  // const getCookie = (name) => {
+  //   const value = `; ${document.cookie}`;
+  //   const parts = value.split(`; ${name}=`);
+  //   if (parts.length === 2) return parts.pop().split(";").shift();
+  //   return null;
+  // };
 
   // Handle email submission
-  // In OTPSignInForm.js, update handleEmailSubmit:
-
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -83,18 +69,7 @@ export default function OTPSignInForm() {
     try {
       await emailSchema.validate({ email }, { abortEarly: false });
 
-      console.log("Before sending OTP - Cookies:", document.cookie);
-
-      // CLEAR all cookies before testing
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
-      });
-
-      console.log("=== STARTING OTP REQUEST ===");
-      console.log("1. All cookies cleared");
-      console.log("2. Making fetch request to /sendOTP");
+      console.log("Sending OTP to:", email);
 
       // Send OTP API call
       setIsSendingOTP(true);
@@ -104,33 +79,17 @@ export default function OTPSignInForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
-        credentials: "include", // ADD THIS to see if backend sets cookie on OTP request
+        credentials: "include",
       });
 
       const data = await response.json();
-
       console.log("Send OTP response:", data);
-      console.log("Response headers:");
-      response.headers.forEach((value, key) => {
-        if (key.toLowerCase() === "set-cookie") {
-          console.log(`${key}: ${value}`);
-        }
-      });
-
-      console.log("After sending OTP - Cookies:", document.cookie);
 
       if (response.ok) {
         toast.success("OTP sent to your email!");
         setStep(2);
         setCountdown(60);
         setResendEnabled(false);
-
-        // Check if token was set
-        const token = getCookie("token1");
-        console.log("Token after OTP request:", token);
-        if (token) {
-          console.warn("WARNING: Token was set on OTP request, not on login!");
-        }
       } else {
         toast.error(data.message || "Failed to send OTP");
         setErrors({ email: data.message });
@@ -145,6 +104,7 @@ export default function OTPSignInForm() {
         newErrors.email = error.message || "Failed to send OTP";
       }
       setErrors(newErrors);
+      toast.error("Failed to send OTP");
     } finally {
       setIsSubmitting(false);
       setIsSendingOTP(false);
@@ -203,6 +163,7 @@ export default function OTPSignInForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -224,8 +185,7 @@ export default function OTPSignInForm() {
     }
   };
 
-  // Handle OTP verification - FIXED FOR token1
-  // Handle OTP verification - Backend sets the token
+  // Handle OTP verification
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -236,9 +196,6 @@ export default function OTPSignInForm() {
     try {
       await otpSchema.validate({ otp: otpString }, { abortEarly: false });
 
-      console.log("Before login - All cookies:", document.cookie);
-
-      // IMPORTANT: Use credentials: 'include' to get cookies from backend
       const response = await fetch(`${BASE_URL}/login2`, {
         method: "POST",
         headers: {
@@ -248,59 +205,25 @@ export default function OTPSignInForm() {
           email,
           otp: otpString,
         }),
-        credentials: "include", // CRITICAL: This allows cookies to be sent/received
+        credentials: "include",
       });
 
       const data = await response.json();
-      console.log("Login response data:", data);
-      console.log("Response status:", response.status);
-
-      // Check response headers for Set-Cookie
-      const setCookieHeader = response.headers.get("set-cookie");
-      console.log("Set-Cookie header:", setCookieHeader);
-
-      // Check immediately after response
-      console.log("Immediately after response - All cookies:", document.cookie);
-      console.log("Token1 cookie:", getCookie("token1"));
 
       if (response.ok) {
         toast.success("Logged in successfully!");
 
-        // Check if token1 was set by backend
-        setTimeout(() => {
-          const token1 = getCookie("token1");
-          console.log("After timeout - Token1:", token1);
-          console.log("All cookies:", document.cookie);
-
-          if (token1) {
-            // Success! Backend set the token, now redirect
-            // IMPORTANT: Use window.location.href for full page navigation
-            // This ensures middleware runs and redirects to correct role page
-            window.location.href = "/";
-          } else {
-            // Backend didn't set cookie properly
-            console.error("Backend didn't set token1 cookie");
-            toast.error("Login failed - No authentication token received");
-          }
-        }, 100); // Small delay to ensure cookies are processed
+        window.location.href = "/";
       } else {
         toast.error(data.message || "Invalid OTP");
-        setErrors({ otp: data.message });
+        setErrors({ otp: data.message || "Invalid OTP" });
         setOtp(["", "", "", "", "", ""]);
         const firstInput = document.getElementById("otp-0");
         if (firstInput) firstInput.focus();
       }
     } catch (error) {
       console.error("Login error:", error);
-      const newErrors = {};
-      if (error.inner) {
-        error.inner.forEach((err) => {
-          newErrors[err.path] = err.message;
-        });
-      } else {
-        newErrors.otp = error.message || "Verification failed";
-      }
-      setErrors(newErrors);
+      toast.error("Verification failed");
     } finally {
       setIsSubmitting(false);
     }
