@@ -13,9 +13,20 @@ export function middleware(request) {
   const publicRoutes = ["/signup", "/verifyemail"];
   const isPublicRoute = publicRoutes.includes(path);
 
-  // Extract role from token
-  const userRole = token ? getRoleFromToken(token) : null;
-  console.log(`[Middleware] User role: ${userRole}`);
+  // Extract role from token (with error handling)
+  let userRole = null;
+  if (token) {
+    try {
+      userRole = getRoleFromToken(token);
+      console.log(`[Middleware] User role: ${userRole}`);
+    } catch (error) {
+      console.error("[Middleware] Invalid token:", error.message);
+      // Invalid token - clear it and redirect to login
+      const response = NextResponse.redirect(new URL("/", request.url));
+      response.cookies.delete("token1");
+      return response;
+    }
+  }
 
   // Define all valid role routes
   const roleRoutes = {
@@ -32,13 +43,24 @@ export function middleware(request) {
   // Get user's allowed route based on their role
   const userAllowedRoute = userRole ? roleRoutes[userRole] : null;
 
+  // If token exists but role is not recognized (invalid/unknown role)
+  if (token && !userAllowedRoute && !isPublicRoute) {
+    console.log("[Middleware] Token present but role not recognized:", userRole);
+    const response = NextResponse.redirect(new URL("/", request.url));
+    response.cookies.delete("token1");
+    return response;
+  }
+
   // 1. If user has token and tries to access root path, redirect to their role route
   if (token && path === "/") {
-    console.log(`[Middleware] Has token, redirecting from / to role route`);
+    console.log(`[Middleware] Has token, redirecting from / to ${userAllowedRoute}`);
     if (userAllowedRoute) {
       return NextResponse.redirect(new URL(userAllowedRoute, request.url));
     }
-    return NextResponse.redirect(new URL("/signup", request.url));
+    // Should not reach here if token validation works, but just in case
+    const response = NextResponse.redirect(new URL("/", request.url));
+    response.cookies.delete("token1");
+    return response;
   }
 
   // 2. If no token and trying to access root path, allow it (show signup form)
@@ -55,7 +77,9 @@ export function middleware(request) {
 
   // 4. If has token and trying to access public route, redirect to their role route
   if (token && isPublicRoute) {
-    console.log(`[Middleware] Has token, redirecting from ${path} to role route`);
+    console.log(
+      `[Middleware] Has token, redirecting from ${path} to ${userAllowedRoute}`
+    );
     if (userAllowedRoute) {
       return NextResponse.redirect(new URL(userAllowedRoute, request.url));
     }
@@ -71,26 +95,11 @@ export function middleware(request) {
 
     // If accessing wrong role route, redirect to correct one
     if (!isAccessingAllowedRoute && isAccessingOtherRoleRoute) {
-      console.log(`[Middleware] User (${userRole}) trying to access wrong route, redirecting to ${userAllowedRoute}`);
+      console.log(
+        `[Middleware] User (${userRole}) trying to access wrong route, redirecting to ${userAllowedRoute}`
+      );
       return NextResponse.redirect(new URL(userAllowedRoute, request.url));
     }
-  }
-
-  // 6. Special case: non-superadmin trying to access superadmin
-  if (path.startsWith("/superadmin") && userRole !== "superadmin") {
-    console.log(`[Middleware] Non-superadmin (${userRole}) trying to access superadmin`);
-    if (userAllowedRoute) {
-      return NextResponse.redirect(new URL(userAllowedRoute, request.url));
-    }
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  // 7. If token exists but role is not recognized (invalid token)
-  if (token && !userAllowedRoute && !isPublicRoute) {
-    console.log("[Middleware] Token present but role not recognized");
-    const response = NextResponse.redirect(new URL("/", request.url));
-    response.cookies.delete("token1");
-    return response;
   }
 
   console.log("[Middleware] Access granted to", path);

@@ -1,0 +1,90 @@
+// Handle OTP verification - FIXED FOR token1
+  // Handle OTP verification - Backend sets the token
+  // const handleOtpSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsSubmitting(true);
+  //   setErrors({});
+
+  //   const otpString = otp.join("");
+
+  //   try {
+  //     await otpSchema.validate({ otp: otpString }, { abortEarly: false });
+
+  //     console.log("Before login - All cookies:", document.cookie);
+
+  //     // IMPORTANT: Use credentials: 'include' to get cookies from backend
+  //     const response = await fetch(`${BASE_URL}/login2`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         email,
+  //         otp: otpString,
+  //       }),
+  //       credentials: "include", // CRITICAL: This allows cookies to be sent/received
+  //     });
+
+  //     const data = await response.json();
+  //     console.log("Login response data:", data);
+  //     console.log("Response status:", response.status);
+
+  //     // Check response headers for Set-Cookie
+  //     const setCookieHeader = response.headers.get("set-cookie");
+  //     console.log("Set-Cookie header:", setCookieHeader);
+
+  //     // Check immediately after response
+  //     console.log("Immediately after response - All cookies:", document.cookie);
+  //     console.log("Token1 cookie:", getCookie("token1"));
+
+  //     if (response.ok) {
+  //       toast.success("Logged in successfully!");
+
+  //       // Check if token1 was set by backend
+  //       setTimeout(() => {
+  //         const token1 = getCookie("token1");
+  //         console.log("After timeout - Token1:", token1);
+  //         console.log("All cookies:", document.cookie);
+
+  //         if (token1) {
+  //           // Success! Backend set the token, now redirect
+  //           // IMPORTANT: Use window.location.href for full page navigation
+  //           // This ensures middleware runs and redirects to correct role page
+  //           window.location.href = "/";
+  //         } else {
+  //           // Backend didn't set cookie properly
+  //           console.error("Backend didn't set token1 cookie");
+  //           toast.error("Login failed - No authentication token received");
+  //         }
+  //       }, 100); // Small delay to ensure cookies are processed
+  //     } else {
+  //       toast.error(data.message || "Invalid OTP");
+  //       setErrors({ otp: data.message });
+  //       setOtp(["", "", "", "", "", ""]);
+  //       const firstInput = document.getElementById("otp-0");
+  //       if (firstInput) firstInput.focus();
+  //     }
+  //   } catch (error) {
+  //     console.error("Login error:", error);
+  //     const newErrors = {};
+  //     if (error.inner) {
+  //       error.inner.forEach((err) => {
+  //         newErrors[err.path] = err.message;
+  //       });
+  //     } else {
+  //       newErrors.otp = error.message || "Verification failed";
+  //     }
+  //     setErrors(newErrors);
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
+
+  // Helper function to get cookie
+  // const getCookie = (name) => {
+  //   const value = `; ${document.cookie}`;
+  //   const parts = value.split(`; ${name}=`);
+  //   if (parts.length === 2) return parts.pop().split(";").shift();
+  //   return null;
+  // };
