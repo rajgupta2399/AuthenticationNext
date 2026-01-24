@@ -26,7 +26,7 @@ const otpSchema = yup.object().shape({
 });
 
 const BASE_URL =
-  "https://iitk-50035778635.development.catalystappsail.in/api/userList";
+  "https://dummybackend-10117104175.development.catalystappsail.com/api/userList";
 
 export default function OTPSignInForm() {
   const [step, setStep] = useState(1);
