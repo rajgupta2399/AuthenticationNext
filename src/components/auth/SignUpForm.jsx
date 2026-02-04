@@ -26,7 +26,8 @@ const otpSchema = yup.object().shape({
 });
 
 const BASE_URL =
-  "https://dummybackend-10117104175.development.catalystappsail.com/api/userList";
+  "https://iitk-50035778635.development.catalystappsail.in/api/userList";
+
 
 export default function OTPSignInForm() {
   const [step, setStep] = useState(1);
@@ -243,6 +244,7 @@ export default function OTPSignInForm() {
         <div className="relative w-32 h-32 md:w-40 md:h-40">
           <Image
             src="https://www.iitk.ac.in/dora/newsletters/2020/december/images/logo.png"
+
             alt="IITK Logo"
             fill
             className="object-contain"
